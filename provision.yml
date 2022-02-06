@@ -1,0 +1,34 @@
+---
+-
+  hosts: "{{ target_hosts | default('all') }}"
+  name: "Provision nginx server"
+  become: true
+  vars:
+  tasks:
+    - name: "Add epel-release repo"
+      yum:
+        name: epel-release
+        state: present
+
+    - name: "Install nginx"
+      yum:
+        name: nginx
+        state: present
+
+    - name: "Copy index file to VM"
+      copy:
+        src: "{{ playbook_dir }}/nginx_files/index.html"
+        dest: /usr/share/nginx/html/index.html
+        mode: '0644'
+
+    - name: "Copy image file to VM"
+      copy:
+        src: "{{ playbook_dir }}/nginx_files/meme-about-cloud.gif"
+        dest: /usr/share/nginx/html/img/meme-about-cloud.gif
+        mode: '0644'
+
+    - name: "Start NGiNX"
+      service:
+        name: nginx
+        state: started
+        enabled: yes

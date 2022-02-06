@@ -1,0 +1,53 @@
+---
+-
+  #localhost default - use target_hosts variable if not running on localhost
+  hosts: "{{ target_hosts | default('localhost') }}"
+  name: "Update Ubuntu packages, install virtualbox, install Vagrant"
+  become: true
+  vars:
+      #Change these variables to false at run-time if one is not needed
+      update_ubuntu: true
+      install_virtualbox: true
+      install_vagrant: true
+  tasks:
+    #Update packages on Ubuntu host
+    - name: update all packages installed on the system
+      apt:
+        name: "*"
+        state: latest
+        force_apt_get: true
+        update_cache: true
+        autoclean: true
+        autoremove: true
+      when: update_ubuntu|bool
+      tags: update_packages
+    #Install Virtualbox
+    - name: ensure virtualbox is installed
+      apt:
+        name: virtualbox
+        state: present
+        update_cache: true
+      when: install_virtualbox|bool
+      tags: virtualbox_install
+
+    #Install Vagrant and dependancies
+    - name: "Ensure xz-utils is installed"
+      apt:
+        name: 
+          - virtualbox
+          - xz-utils
+        state: present
+        update_cache: true
+      when: install_vagrant|bool
+      tags: xz-utils_install
+
+    - name: "Install Vagrant .deb package from the internet"
+      apt:
+        deb: https://releases.hashicorp.com/vagrant/2.2.9/vagrant_2.2.9_x86_64.deb
+      when: install_vagrant|bool
+      tags: vagrant_install
+
+    - name: "Verify Vagrant installed"
+      shell: "vagrant --version"
+      when: install_vagrant|bool
+      tags: verify_vagrant_installed
